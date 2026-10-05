@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HETAICF v0.13 Explorer</title>
+<style>
+:root{
+  --bg:#ffffff; --bg2:#f6f8fb; --panel:#ffffff; --line:#dbe3ec;
+  --ink:#16202e; --dim:#5a6b80; --mute:#8496a8; --acc:#1b5fa8;
+  --D1:#0f766e; --D2:#1b5fa8; --D3:#a8501b; --D4:#5b3fa8;
+  --LF:#1b5fa8; --ST:#a8501b; --VW:#5b3fa8; --base:#16202e;
+  --hl:#fff6d6; --hlline:#e0b400;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10151d; --bg2:#161d27; --panel:#1a222d; --line:#2b3746;
+    --ink:#e6edf5; --dim:#a4b3c4; --mute:#7d8da0; --acc:#6aa6e8;
+    --D1:#2fb3a6; --D2:#6aa6e8; --D3:#e0915c; --D4:#a48ae8;
+    --LF:#6aa6e8; --ST:#e0915c; --VW:#a48ae8; --base:#3a4a5e;
+    --hl:#3a3212; --hlline:#c9a227;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10151d; --bg2:#161d27; --panel:#1a222d; --line:#2b3746;
+  --ink:#e6edf5; --dim:#a4b3c4; --mute:#7d8da0; --acc:#6aa6e8;
+  --D1:#2fb3a6; --D2:#6aa6e8; --D3:#e0915c; --D4:#a48ae8;
+  --LF:#6aa6e8; --ST:#e0915c; --VW:#a48ae8; --base:#3a4a5e;
+  --hl:#3a3212; --hlline:#c9a227;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",Calibri,system-ui,Helvetica,Arial,sans-serif;line-height:1.55;font-size:15px}
+.wrap{max-width:1160px;margin:0 auto;padding:0 16px}
+header{background:var(--bg2);border-bottom:1px solid var(--line);padding:26px 0 20px}
+header h1{margin:0 0 4px;font-size:1.5rem;line-height:1.25}
+header .sub{color:var(--acc);font-weight:600}
+header .meta{color:var(--mute);font-size:.8rem;margin-top:6px}
+section{margin:32px 0}
+h2{font-size:1.15rem;border-left:4px solid var(--acc);padding-left:11px;margin:0 0 12px}
+p{margin:.4em 0}
+.dim{color:var(--dim)} .small{font-size:.85rem}
+/* Architektur */
+.arch{display:grid;gap:8px}
+.profiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pbox{border:0;border-radius:12px;padding:12px 14px;color:#fff;text-align:left;cursor:pointer;font:inherit;opacity:.92;transition:.15s}
+.pbox:hover,.pbox.act{opacity:1;outline:3px solid var(--hlline);outline-offset:2px}
+.pbox b{display:block;font-size:1rem}
+.pbox span{font-size:.8rem;display:block;opacity:.95}
+.arrow{text-align:center;color:var(--mute);font-size:.8rem}
+.found{border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+.found .bar{background:var(--base);color:#fff;text-align:center;padding:8px;font-weight:700;cursor:pointer}
+.found .bar.act{outline:3px solid var(--hlline);outline-offset:-3px}
+.doms{display:grid;grid-template-columns:repeat(4,1fr)}
+.dom{padding:10px 12px;border-top:4px solid;background:var(--panel);border-right:1px solid var(--line)}
+.dom:last-child{border-right:0}
+.dom b{display:block}
+.dom .ids{font-size:.75rem;color:var(--mute);font-weight:700}
+.dom p{font-size:.82rem;color:var(--dim)}
+/* Steuerung */
+.controls{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 0}
+.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--mute);margin-right:4px}
+.chip{padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--dim);font:inherit;font-size:.82rem;font-weight:600;cursor:pointer}
+.chip.act{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+input[type=search]{flex:1 1 200px;min-width:0;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);font:inherit;font-size:.88rem}
+.theme{margin-left:auto}
+/* Karten */
+.dhead{margin:22px 0 8px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.dhead h3{margin:0;font-size:1.02rem}
+.dhead .en{color:var(--mute);font-size:.85rem}
+.card{border:1px solid var(--line);border-left:5px solid;border-radius:10px;background:var(--panel);margin:8px 0;overflow:hidden}
+.card summary{list-style:none;cursor:pointer;padding:10px 14px;display:flex;gap:10px;align-items:baseline}
+.card summary::-webkit-details-marker{display:none}
+.cid{font-weight:800;min-width:2.8em}
+.ctitle{flex:1;font-weight:600}
+.badge{font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--dim);white-space:nowrap}
+.badge.t{background:var(--hl);border-color:var(--hlline);color:var(--ink)}
+.cbody{padding:0 14px 12px}
+.cbody .desc{color:var(--dim);font-size:.9rem}
+.levels{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.lv{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.85rem;background:var(--bg2)}
+.lv h4{margin:0 0 3px;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;color:var(--mute)}
+.lv.target{background:var(--hl);border-color:var(--hlline)}
+.lv.target h4{color:var(--ink)}
+.lv.target h4::after{content:" · Zielniveau"}
+.origin{font-size:.72rem;color:var(--mute);font-weight:700}
+.pinfo{border:1px solid var(--line);border-radius:12px;padding:12px 16px;background:var(--bg2);margin:10px 0}
+/* Matrix */
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:.84rem}
+th,td{padding:6px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--bg2);font-size:.78rem}
+td.lvl{text-align:center;font-weight:800}
+td.F{background:color-mix(in srgb,var(--D1) 22%,transparent)}
+td.G{background:color-mix(in srgb,var(--D1) 8%,transparent)}
+td.hi{outline:2px solid var(--hlline);outline-offset:-2px}
+ul{padding-left:1.2em}
+footer{border-top:1px solid var(--line);color:var(--mute);font-size:.8rem;padding:16px 0 30px}
+@media (max-width:760px){
+  .profiles,.doms{grid-template-columns:1fr}
+  .dom{border-right:0;border-bottom:1px solid var(--line)}
+  .levels{grid-template-columns:1fr}
+  .card summary{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="dim small">„KI-Kompetenzen an Hochschulen stärken“ · KI-Campus AG 1</div>
+  <h1>KI-Kompetenzrahmen für die Hochschule (HETAICF)</h1>
+  <div class="sub">Fundament und Zielgruppenprofile · <span id="ver"></span></div>
+  <div class="meta">Bereinigte Fassung auf Basis der Kommentierung von v0.11.1 · Entwurf zur Diskussion</div>
+</div></header>
+
+<main class="wrap">
+<section>
+  <h2>Das Modell</h2>
+  <p>Ein <b>Fundament</b> aus 19 Kernkompetenzen in vier Domänen gilt in seinen Definitionen für alle Hochschulangehörigen. Drei <b>Zielgruppenprofile</b> legen darauf das angestrebte Mindestniveau fest und ergänzen rollenspezifische Profilkompetenzen. Die Inhalte des früheren Stratum X (Recht, wissenschaftliches Arbeiten, professionelle Entwicklung) sind zielgruppengerecht in die Profile gewandert. <span class="dim">Klicken Sie auf ein Profil oder das Fundament.</span></p>
+  <div class="arch">
+    <div class="profiles" id="pboxes"></div>
+    <div class="arrow">▲ ergänzen Profilkompetenzen und legen Zielniveaus fest ▲</div>
+    <div class="found"><div class="bar" id="fbar" role="button" tabindex="0">Fundament · 19 Kernkompetenzen · für alle Zielgruppen</div><div class="doms" id="doms"></div></div>
+  </div>
+  <p class="small dim" style="margin-top:10px"><b>Niveaus (AILit):</b> Grundlegend (Basic) – Fortgeschritten (Intermediate) – Vertieft (Advanced). Kurzformate wie KI-Campus-Kurse führen plausibel bis Fortgeschritten; Vertieft ist Orientierungshorizont nach mehrjähriger Praxis. <b>Aufbau:</b> D1 ist Basis, D2/D3 bauen darauf auf, D4 ist die Spitze – eine Lesehilfe, kein Zugangsschloss. <b>KI-Begriff:</b> umfassend (regelbasiert, lernend, generativ).</p>
+</section>
+
+<div class="controls"><div class="wrap row" style="padding:0">
+  <span class="lbl">Sicht</span><span id="viewchips" class="row"></span>
+  <span class="lbl" style="margin-left:8px">Domäne</span><span id="domchips" class="row"></span>
+  <input type="search" id="q" placeholder="Suchen (z. B. Prüfung, Datenschutz, E3)" aria-label="Kompetenzen durchsuchen">
+  <button class="chip theme" id="theme" title="Hell/Dunkel umschalten">◐</button>
+</div></div>
+
+<section id="profileSection"></section>
+<section id="coreSection"></section>
+
+<section>
+  <h2>Zielniveau je Kernkompetenz und Profil</h2>
+  <p class="small dim">G = Grundlegend · F = Fortgeschritten · – = kein Mindestniveau (freiwillig). Vorschlag zur Diskussion. In D1 gilt für alle mindestens G (Art. 4 AI Act).</p>
+  <div class="tablewrap"><table id="matrix"></table></div>
+</section>
+
+<section>
+  <h2>Verbleib von Stratum X</h2>
+  <div class="tablewrap"><table id="strat"></table></div>
+</section>
+
+<section>
+  <h2>Änderungen gegenüber v0.11.1</h2>
+  <div class="tablewrap"><table id="changes"></table></div>
+  <h3 style="font-size:1rem;margin-top:18px">Offene Punkte</h3>
+  <ul id="open"></ul>
+</section>
+</main>
+<footer><div class="wrap">HETAICF · Fundament und Zielgruppenprofile · orientiert am OECD/EU AILit Framework und am EU AI Act.</div></footer>
+
+<script>
+const DATA = {"version": "v0.13", "date": "September 2026", "levels": ["Grundlegend", "Fortgeschritten", "Vertieft"], "domains": [{"id": "D1", "name": "Bewusst mit KI umgehen", "en": "Engage with AI", "color": "0F766E", "short": "Kritische und verantwortungsvolle Teilhabe an einem sich durch KI verändernden akademischen Kontext.", "intro": "Umfasst das Verstehen von KI und die bewusste Auseinandersetzung mit ihr. Basisdomäne: Alle Hochschulangehörigen erreichen hier – disziplin- und rollenunabhängig – mindestens das Niveau Grundlegend (Art. 4 EU AI Act). D2–D4 bauen darauf auf."}, {"id": "D2", "name": "KI kreativ anwenden", "en": "Create with AI", "color": "1B5FA8", "short": "KI als „kreativen Partner“ nutzen und dabei Autorschaft und wissenschaftliche Integrität wahren.", "intro": "Trägt die Integritätsfrage und gibt dem Prompting einen expliziten Ort. Setzt D1 voraus."}, {"id": "D3", "name": "KI gezielt einsetzen", "en": "Manage AI", "color": "A8501B", "short": "Akademische Arbeit bewusst zwischen Menschen und KI-Systemen aufteilen.", "intro": "Die Aufsichtsdomäne: begründete Nicht-Nutzung, Schutz vor Deskilling und menschlich verantwortete Entscheidungsschleifen. Setzt D1 voraus."}, {"id": "D4", "name": "KI aktiv mitgestalten", "en": "Shape AI", "color": "5B3FA8", "short": "Die in der Hochschule eingesetzten KI-Systeme untersuchen, evaluieren und verbessern – bis zur institutionellen Entscheidungsebene.", "intro": "Die Spitze, überwiegend auf den Niveaus Fortgeschritten und Vertieft erreicht; setzt D1–D3 voraus."}], "core": [["E1", "D1", "Rolle und Einfluss von KI in akademischen Kontexten erkennen", "Die Fähigkeit, zu erkennen, wo KI-Systeme in Lehr-, Lern-, Forschungs- und Verwaltungsprozessen einer Hochschule wirksam sind, und zu beschreiben, welchen Einfluss sie auf diese Prozesse ausüben.", ["Erkennt KI-Systeme im eigenen Studien-, Arbeits- oder Forschungsumfeld und benennt deren Funktion.", "Erklärt, wie KI-Systeme akademische Arbeitsabläufe prägen, und vergleicht deren Einfluss über Kontexte hinweg.", "Kartiert die KI-Einsatzlandschaft eines Fachs oder der Institution und analysiert den systemischen Einfluss auf die akademische Praxis."]], ["E2", "D1", "Die Funktionsweise von KI-Systemen präzise und nicht-anthropomorph beschreiben", "Die Fähigkeit, in fachlich korrekten Begriffen zu erklären, wie ein KI-System – regelbasiert, lernend oder generativ – seine Ausgaben erzeugt (über Daten, statistische Inferenz und probabilistische Generierung statt über Verstehen, Absicht oder Wissen), und diese Präzision in Studium, Lehre, Forschung und institutioneller Kommunikation durchzuhalten.", ["Unterscheidet anthropomorphe von fachlich präzisen Beschreibungen von KI-Systemen und verwendet Letztere.", "Erklärt Modellverhalten einschließlich Trainingsdaten, Inferenz und typischer Fehler (z. B. Halluzination) für fachfremde Personen.", "Setzt terminologische Standards in Fach oder Institution und korrigiert anthropomorphe Deutungen in Policy und Kommunikation."]], ["E3", "D1", "Bewerten, ob KI-Ausgaben akzeptiert, überarbeitet oder verworfen werden", "Die Fähigkeit, eine KI-Ausgabe – generierten Inhalt ebenso wie Klassifikation, Vorhersage oder statistisches Ergebnis – einer bewussten Prüfentscheidung zu unterziehen, bevor sie in ein akademisches Produkt eingeht (Studienleistung, Lehrmaterial, Manuskript, Bewertung, Verwaltungsvorgang), und sie auf sachliche Richtigkeit, Verzerrung, fachliche Angemessenheit und Zweckeignung zu prüfen.", ["Prüft KI-Ausgaben vor der Nutzung an einer verlässlichen Quelle und verwirft nicht Verifizierbares.", "Wendet strukturierte Kriterien für Richtigkeit, Verzerrung und fachliche Passung an und dokumentiert die Entscheidung.", "Entwickelt und verbreitet Bewertungsrubriken für KI-Ausgaben in Fach oder Institution."]], ["E4", "D1", "Untersuchen, wie Empfehlungen prädiktiver KI Perspektiven erweitern oder verengen", "Die Fähigkeit, zu analysieren, wie Empfehlungs- und Ranking-Systeme prägen, was in Studium, Forschung, Lehre und Verwaltung gesehen, gelesen und erwogen wird, und die daraus folgenden Verengungseffekte zu identifizieren.", ["Erkennt, dass Empfehlungssysteme vorselektieren und dass diese Vorselektion nicht neutral ist.", "Vergleicht, was KI-gestützte und nicht KI-gestützte Wege zu Informationen sichtbar machen (z. B. Literaturrecherche, Lernpfade).", "Analysiert Empfehlungslogiken institutioneller Systeme und ihre Gerechtigkeitsfolgen (vgl. AI Act, Anhang III Nr. 3)."]], ["E5", "D1", "Energie- und Ressourcenverbrauch von KI-Systemen vergleichen", "Die Fähigkeit, die materiellen und ökologischen Kosten der KI-Nutzung als ein Kriterium akademischer Entscheidungen einzubeziehen – bei Werkzeugwahl, Forschungsdesign und institutioneller Beschaffung – und Systeme auch bei unvollständigen Herstellerangaben nicht allein nach Funktionalität zu vergleichen.", ["Weiß, dass KI-Nutzung Energie-, Wasser- und Hardwarekosten verursacht, und kann Größenordnungen benennen.", "Bezieht Ressourcenverbrauch als explizites Kriterium in Werkzeugwahl und Arbeitsplanung ein.", "Bringt Nachhaltigkeitskriterien in institutionelle KI-Beschaffung und Berichterstattung ein."]], ["E6", "D1", "Erklären, wie KI gesellschaftliche Verzerrungen verstärkt und epistemische Autorität konzentriert", "Die Fähigkeit, zu erklären, wie Verzerrungen auf den Stufen Daten, Design, Entwicklung und Einsatz in KI-Systeme gelangen und wie deren Nutzung in der Hochschule bestehende Ungleichheiten in Zugang, Bewertung und akademischer Anerkennung reproduzieren oder verstärken kann.", ["Benennt Bias als systematische Eigenschaft von KI-Systemen und identifiziert dessen Quellen.", "Erklärt Bias-Effekte für konkrete Gruppen in eigenen Studien-, Lehr-, Prüfungs- oder Verwaltungssettings.", "Analysiert strukturelle Macht- und Wissenskonzentration im akademischen KI-Ökosystem und deren Folgen für die Disziplin."]], ["E7", "D1", "Analysieren, wie gut KI-Nutzung mit ethischen Prinzipien und menschlichen Werten übereinstimmt", "Die Fähigkeit, einen konkreten Anwendungsfall von KI an expliziten ethischen Prinzipien zu prüfen – Schadensvermeidung, Verhältnismäßigkeit, Nichtdiskriminierung, Nachhaltigkeit, menschliche Letztbestimmung und Transparenz – und das Urteil im akademischen und institutionellen Kontext zu begründen.", ["Kennt die ethischen Kernprinzipien und wendet sie auf einen konkreten Anwendungsfall von KI an.", "Führt strukturierte ethische Prüfungen der eigenen KI-Nutzung durch und dokumentiert sie.", "Wirkt an der Ko-Kreation ethischer Leitlinien auf institutioneller oder fachlicher Ebene mit."]], ["C1", "D2", "Generative KI-Systeme nutzen, um Perspektiven auf eigene akademische Ideen zu erweitern", "Die Fähigkeit, generative KI-Systeme in der frühen Phase akademischer Arbeit – Forschungsidee, Hausarbeit, Lehrkonzept, Projekt- oder Prozessidee – zur Ideengenerierung einzusetzen, sodass die entstehenden Perspektiven eine ursprünglich menschliche Idee erweitern, statt sie zu ersetzen.", ["Setzt generative KI begründet zur Ideengenerierung und Materialzusammenstellung für eine definierte Aufgabe ein.", "Setzt generative KI iterativ ein, um eigene Konzeptionen zu schärfen und zu prüfen.", "Setzt generative KI systematisch ein, um Gegenpositionen zu theoretischen und epistemologischen Spannungen des Fachs zu erzeugen."]], ["C2", "D2", "Ideen mit unterschiedlichen KI-Systemtypen visualisieren, prototypisch umsetzen und kombinieren", "Die Fähigkeit, mithilfe unterschiedlicher KI-Systemtypen – Text, Bild, Code, Daten – von einem Konzept zu einem nutzbaren Artefakt zu gelangen und deren Ausgaben zu Lern- und Lehrmaterialien, Präsentationen, Simulationen, Forschungsabbildungen oder Informationsangeboten zu verbinden.", ["Erstellt einfache Materialien wie Beispiele, Übersichten oder Grafiken mit KI-Unterstützung.", "Kombiniert mehrere KI-Systemtypen zu kohärenten Artefakten für Studium, Lehre, Forschung oder Verwaltung.", "Prototypisiert komplexe, fachspezifische Anwendungen, Lernumgebungen oder Simulationen mit KI."]], ["C3", "D2", "Generative KI-Systeme steuern und iterieren (Prompting als dokumentierte Praxis)", "Die Fähigkeit, ein generatives System durch bewusste Formulierung, iterative Verfeinerung und Ergänzung auf ein nützliches Ergebnis hin zu steuern und diesen Prozess so zu dokumentieren, dass er rekonstruierbar und vermittelbar wird.", ["Formuliert klare, präzise Prompts und erkennt, wenn eine Ausgabe der Absicht nicht entspricht.", "Verfeinert Prompts iterativ und ergänzt Ausgaben um weitere Quellen, um die Genauigkeit zu erhöhen.", "Entwirft und teilt reproduzierbare Workflows, die generative KI dialogisch und mehrschrittig einbinden."]], ["C4", "D2", "Analysieren, wie KI Authentizität, Autorschaft und geistiges Eigentum sichert oder verletzt", "Die Fähigkeit, zu bestimmen, was in KI-gestützter akademischer Arbeit legitime Autorschaft ausmacht, KI-Nutzung entsprechend den Vorgaben von Hochschule, Prüfungsordnung, Verlag oder Fördergeber transparent auszuweisen und urheber- sowie lizenzrechtliche Implikationen zu beurteilen.", ["Kennt und befolgt die geltenden Ausweisungsregeln für KI-Nutzung in eigenen Arbeiten.", "Beurteilt Urheberrechts-, Lizenz- und Authentizitätsfragen in konkreten Fällen.", "Gestaltet institutionelle oder fachliche Regeln zu Autorschaft und Ausweisung von KI-Nutzung mit."]], ["M1", "D3", "Über den KI-Einsatz nach Art der akademischen Aufgabe entscheiden, einschließlich begründeter Nicht-Nutzung", "Die Fähigkeit, eine evidenzinformierte Entscheidung für oder gegen den KI-Einsatz bei einer gegebenen Aufgabe zu treffen, ausgehend vom Ziel der Aufgabe (z. B. dem Lernziel), der fachlichen Logik und den Folgen der Entscheidung.", ["Unterscheidet KI-geeignete Aufgaben von solchen, bei denen KI das eigentliche Ziel (z. B. den Lernzuwachs) unterlaufen würde.", "Begründet Nutzungs- und Nicht-Nutzungsentscheidungen evidenzbasiert und dokumentiert sie.", "Entwickelt Entscheidungsheuristiken für Fach oder Organisationseinheit und vermittelt sie an andere."]], ["M2", "D3", "Einen angemessenen KI-Ansatz durch Vergleich der Funktionsweise verschiedener Systeme wählen", "Die Fähigkeit, zwischen KI-Systemen auf Grundlage ihrer Funktionsweise statt ihrer Vermarktung zu wählen – im Vergleich von Modelltyp, Datenverarbeitung, Transparenz, Barrierefreiheit und institutioneller Compliance – und ein begründbares Set geprüfter Werkzeuge für den eigenen Kontext zu kuratieren.", ["Unterscheidet die Hauptkategorien von KI-Systemen und wählt ein für einen definierten Zweck passendes Werkzeug.", "Wendet strukturierte Auswahlkriterien an, einschließlich Datenschutz, Barrierefreiheit und Aufgabenpassung.", "Baut ein Repositorium geprüfter KI-Werkzeuge auf, pflegt es und berät andere dazu."]], ["M3", "D3", "Aufgaben zerlegen, um zu bestimmen, wo KI automatisieren und wo sie augmentieren soll", "Die Fähigkeit, eine akademische Aufgabe in Teilschritte zu zerlegen und jeden Schritt bewusst der Automatisierung oder der Augmentation menschlicher Arbeit zuzuordnen – mit dem Ziel, jene kognitive Tätigkeit zu erhalten, durch die fachliche und professionelle Expertise aufgebaut und bewahrt wird.", ["Unterscheidet Automatisierung von Augmentation und erkennt Anzeichen von Überabhängigkeit in der eigenen Praxis.", "Gestaltet Lern-, Arbeits- und Forschungsprozesse so, dass die kognitive Kernarbeit beim Menschen verbleibt.", "Entwickelt Strukturen, die Deskilling-Risiken auf institutioneller Ebene explizit adressieren."]], ["M4", "D3", "KI-Einsatz über den gesamten Verlauf eines akademischen Arbeitsprozesses überwachen und bewerten", "Die Fähigkeit, einen KI-gestützten Prozess unter fortlaufender menschlicher Beobachtung zu halten, statt nur das Endergebnis zu prüfen – Abweichungen und unerwartetes Verhalten zu erkennen, dem Automatisierungsbias zu widerstehen sowie einzugreifen, zu übersteuern oder den Prozess zu stoppen, wo erforderlich.", ["Überwacht KI-gestützte Prozesse an definierten Prüfpunkten und erkennt Automatisierungsbias bei sich selbst.", "Implementiert menschlich verantwortete Entscheidungsschleifen mit dokumentierten Interventionspunkten.", "Entwirft und auditiert institutionelle Aufsichtsstrukturen für eingesetzte KI-Systeme."]], ["S1", "D4", "Untersuchen, wie ein KI-System funktionieren soll, für wen es entworfen ist und wo seine Grenzen liegen", "Die Fähigkeit, ein KI-System vor dem Einsatz in Studium, Lehre, Forschung oder Verwaltung einer Due-Diligence-Prüfung zu unterziehen – hinsichtlich Zweck, vorgesehener Nutzendengruppe, Trainings- und Evaluationsgrundlage, dokumentierter Grenzen sowie der Passung zwischen Gestaltungsannahmen und den Menschen, die es an der Hochschule nutzen oder von ihm betroffen sind.", ["Liest und versteht Dokumentation, Nutzungsbedingungen und ausgewiesene Grenzen eines Systems.", "Führt vor dem Einsatz eines Systems eine strukturierte Due-Diligence-Prüfung durch.", "Leitet institutionelle Prüfverfahren oder wirkt daran mit, einschließlich Zuarbeit zu Grundrechte-Folgenabschätzungen."]], ["S2", "D4", "KI-Systeme anhand definierter Zielgrößen, Testfälle und Nutzendenrückmeldungen evaluieren", "Die Fähigkeit, eine empirische Evaluation eines KI-Systems in seinem tatsächlichen Einsatzkontext zu konzipieren und durchzuführen – mit Definition eines guten Ergebnisses, Testfällen einschließlich Grenzfällen für benachteiligte Gruppen, Rückmeldungen der Nutzenden sowie einer begründbaren Entscheidung über die Weiternutzung.", ["Testet ein System vor der regulären Nutzung systematisch an eigenen Fällen.", "Konzipiert Pilotevaluationen mit definierten Kriterien und erhebt strukturiertes Nutzendenfeedback.", "Leitet institutionelle Evaluations- und Auditprozesse, einschließlich Learning-Analytics-Audits."]], ["S3", "D4", "KI-Einsatz mit Blick auf Datenquellen, Datenauswahl und Informationsflüsse gestalten", "Die Fähigkeit, Daten als Gestaltungs- und Analysegegenstand zu behandeln – zu verstehen, woher die einem System zugrunde liegenden Daten stammen, wie Auswahl sein Verhalten prägt, welche Daten während der Nutzung die Institution verlassen und wie diese Entscheidungen bei Konfiguration oder Anpassung für lokale Bedarfe gesteuert werden können.", ["Weiß, mit welchen Daten ein System trainiert wurde und welche Daten bei der Nutzung die Institution verlassen.", "Analysiert Datenqualität und Auswahleffekte und passt Konfigurationen entsprechend an.", "Stellt Systeme zusammen oder passt sie an, mit bewusster Kontrolle über Datenquellen und Informationsflüsse."]], ["S4", "D4", "KI-Nutzung und KI-Systeme auf Wohlergehen und gesellschaftlichen Nutzen hin verbessern", "Die Fähigkeit, von der Kritik zur Intervention überzugehen: Verbesserungen an KI-Systemen und KI-Praktiken der Hochschule vorzuschlagen und umzusetzen, sodass diese dem Wohlergehen der Hochschulangehörigen, der Zugangsgerechtigkeit und dem öffentlichen Auftrag der Hochschule dienen – einschließlich der Eskalation erkannter Risiken an Anbieter oder Aufsichtsbehörden.", ["Meldet erkannte Probleme mit KI-Systemen über den zuständigen institutionellen Weg.", "Entwickelt und erprobt konkrete Verbesserungsvorschläge für die KI-Nutzung im eigenen Verantwortungsbereich.", "Wirkt an Multi-Stakeholder-Aushandlungsprozessen zu KI in der Bildung mit und eskaliert Risiken an Anbieter und Aufsichtsbehörden."]]], "profiles": [{"id": "LF", "name": "Lehrende und Forschende", "en": "Teaching & Research Staff", "color": "1B5FA8", "who": "Professor:innen, wissenschaftliche Mitarbeitende, Lehrbeauftragte, Promovierende mit Lehr- oder Forschungsaufgaben.", "focus": "Hochschuldidaktik, Prüfen, Forschen und professionelle Weiterentwicklung mit KI.", "targets": {"E1": "G", "E2": "F", "E3": "F", "E4": "F", "E5": "G", "E6": "F", "E7": "F", "C1": "F", "C2": "F", "C3": "F", "C4": "F", "M1": "F", "M2": "F", "M3": "F", "M4": "G", "S1": "G", "S2": "G", "S3": "G", "S4": "G"}, "comps": [["LF1", "KI-bezogen hochschuldidaktisch gestalten", "neu", "Die Fähigkeit, Lehrveranstaltungen, Lernaufgaben und Lernbegleitung so zu gestalten, dass KI lernförderlich eingesetzt oder begründet ausgeschlossen wird – ausgehend von Lernzielen, fachlicher Logik und der Heterogenität der Studierenden – und Studierende beim Aufbau ihrer eigenen KI-Kompetenzen zu begleiten.", ["Passt einzelne Lernaufgaben an die Verfügbarkeit von KI an und kommuniziert Nutzungsregeln transparent.", "Gestaltet Lehrveranstaltungen mit abgestimmten KI-bezogenen Lernzielen, Lernaktivitäten und Begleitung (Constructive Alignment).", "Entwickelt fach- oder studiengangsbezogene didaktische Konzepte zu KI und verankert sie curricular."]], ["LF2", "Prüfen und Bewerten unter KI-Bedingungen gestalten", "neu", "Die Fähigkeit, Prüfungsformate, Aufgabenstellungen und Bewertungskriterien bei verfügbarer KI valide, fair und transparent zu gestalten – einschließlich klarer Regeln zur zulässigen KI-Nutzung und eines verantwortlichen Umgangs mit KI-gestütztem Feedback und KI-gestützter Bewertung.", ["Kennt die Regeln der Prüfungsordnung zur KI-Nutzung und erkennt, welche eigenen Prüfungsformate durch KI an Aussagekraft verlieren.", "Entwickelt Prüfungsformate und Bewertungskriterien, die Kompetenz auch bei KI-Verfügbarkeit valide erfassen.", "Gestaltet Prüfungskultur und Prüfungsregeln auf Studiengangs- oder Institutionsebene mit."]], ["LF3", "Wissenschaftlich mit KI forschen und dies vermitteln", "aus Stratum X (X2)", "Die Fähigkeit, KI in den Forschungsprozess zu integrieren – Literaturrecherche, Datenanalyse, Entwurf und Überarbeitung –, sodass methodische Strenge, Quellenprüfbarkeit und Reproduzierbarkeit gewahrt bleiben, und diese Praxis in Methodenausbildung und Betreuung von Abschlussarbeiten zu vermitteln.", ["Nutzt KI für Literaturrecherche und Textüberarbeitung und prüft jede Quellenangabe am Original.", "Integriert KI in definierte Schritte eines Forschungsdesigns und dokumentiert den Einsatz reproduzierbar.", "Entwickelt methodische Standards für KI-gestützte Forschung im Fach und verbreitet sie."]], ["LF4", "Sich mit KI professionell und kollaborativ weiterentwickeln", "aus Stratum X (X3)", "Die Fähigkeit, die eigene professionelle Entwicklung in einem Feld aufrechtzuerhalten, das sich schneller wandelt als formale Curricula – eigene Lernbedarfe zu erkennen, KI zur Unterstützung dieses Lernens zu nutzen und in professionellen Gemeinschaften mitzuwirken, in denen KI-bezogene Lehr- und Forschungserfahrung geteilt wird (vgl. DigCompEdu: Berufliches Engagement).", ["Erkennt eigene Lernbedarfe zu KI und nutzt KI-gestützte Ressourcen, um sie zu bearbeiten.", "Teilt KI-bezogene Lehr- und Forschungserfahrung in Professional Communities und entwickelt Materialien gemeinsam im Kollegium.", "Konzipiert und leitet KI-bezogene Weiterbildungsprogramme und begleitet andere als Mentor:in."]], ["LF5", "Den Rechtsrahmen für KI in Lehre und Forschung anwenden", "aus Stratum X (X1)", "Die Fähigkeit, zu bestimmen, welche rechtlichen Pflichten für KI-Einsatz in Lehre, Prüfung und Forschung gelten – KI-Kompetenzpflicht und Verbote (Art. 4, 5 AI Act), Hochrisiko-Einstufung im Bildungsbereich (Anhang III Nr. 3: Zulassung, Bewertung, Prüfungsaufsicht), Datenschutz bei Studierenden- und Forschungsdaten, Urheber- und Prüfungsrecht – und entsprechend zu handeln.", ["Kennt die für Lehre und Forschung relevanten Pflichten (AI Act Art. 4, 5; DSGVO; Urheberrecht) und die Regeln der Hochschule.", "Prüft eigene Anwendungsfälle – insbesondere KI in Bewertung und Prüfungsaufsicht – auf Hochrisiko-Einstufung und Compliance und dokumentiert die Prüfung.", "Wirkt an institutionellen Compliance-Verfahren mit, einschließlich Grundrechte-Folgenabschätzungen (Art. 27)."]]]}, {"id": "ST", "name": "Studierende", "en": "Students", "color": "A8501B", "who": "Studierende in allen Studienphasen und Fächern, einschließlich studentischer Hilfskräfte und Tutor:innen.", "focus": "Studieren, wissenschaftlich Arbeiten und Lernen mit KI – regelkonform und mit Blick auf das künftige Berufsfeld.", "targets": {"E1": "G", "E2": "G", "E3": "F", "E4": "G", "E5": "G", "E6": "G", "E7": "G", "C1": "F", "C2": "G", "C3": "F", "C4": "F", "M1": "F", "M2": "G", "M3": "F", "M4": "G", "S1": "–", "S2": "–", "S3": "–", "S4": "G"}, "comps": [["ST1", "Wissenschaftlich arbeiten mit KI im Studium", "aus Stratum X (X2)", "Die Fähigkeit, KI in Recherche, Lektüre, Datenanalyse, Schreiben und Überarbeiten so einzusetzen, dass Quellenprüfbarkeit, methodische Sorgfalt und die Eigenständigkeit der Studienleistung gewahrt bleiben.", ["Nutzt KI für Recherche und Textüberarbeitung und prüft jede Quellenangabe am Original.", "Integriert KI in definierte Schritte einer Haus- oder Abschlussarbeit und dokumentiert den Einsatz nachvollziehbar.", "Entwickelt eigene, methodisch begründete KI-Workflows für Forschungsprojekte und teilt sie mit Mitstudierenden."]], ["ST2", "Das eigene Lernen mit KI selbst steuern", "aus Stratum X (X3)", "Die Fähigkeit, KI zur Unterstützung des eigenen Lernens einzusetzen – Planung, Erklärung, Übung, Feedback –, ohne die Lernarbeit auszulagern, eigene Lernbedarfe zu erkennen und den Lernfortschritt zu reflektieren.", ["Nutzt KI gezielt zur Erklärung und Übung und erkennt, wann KI die eigene Lernarbeit ersetzt statt unterstützt.", "Plant Lernprozesse mit KI-Unterstützung, holt KI-Feedback ein und prüft es kritisch gegen die Lernziele.", "Entwickelt und teilt Lernstrategien mit KI in Lerngruppen oder Tutorien."]], ["ST3", "Rechts- und Prüfungsrahmen der KI-Nutzung im Studium einhalten", "aus Stratum X (X1)", "Die Fähigkeit, die für das Studium geltenden Regeln der KI-Nutzung zu kennen und anzuwenden – Prüfungsordnung und Eigenständigkeitserklärung, Kennzeichnungspflichten, Urheberrecht sowie Datenschutz beim Eingeben eigener und fremder Daten in KI-Werkzeuge.", ["Kennt die Regeln zur KI-Nutzung in Prüfungen und gibt keine personenbezogenen oder vertraulichen Daten in nicht freigegebene Werkzeuge ein.", "Klärt unklare Fälle zulässiger Nutzung aktiv mit Lehrenden und kennzeichnet KI-Nutzung regelkonform.", "Wirkt in Gremien oder Fachschaften an Regeln zur KI-Nutzung im Studium mit."]], ["ST4", "KI in Fach und künftigem Berufsfeld einordnen", "neu", "Die Fähigkeit, zu verstehen, wie KI Methoden, Arbeitsweisen und Berufsbilder des eigenen Fachs verändert, und die eigene Kompetenzentwicklung darauf auszurichten.", ["Benennt typische KI-Anwendungen in Fach und Berufsfeld.", "Erprobt fachspezifische KI-Werkzeuge in Projekten und reflektiert deren Grenzen.", "Bringt KI-bezogene Fachpraxis in Praxisprojekte, Praktika oder Abschlussarbeiten ein und beurteilt Folgen für das Berufsfeld."]]]}, {"id": "VW", "name": "Verwaltung", "en": "Administrative Staff", "color": "5B3FA8", "who": "Beschäftigte in Technik und Verwaltung, u. a. Studierendenservice, Prüfungsämter, Bibliothek, IT, Personal, Finanzen und Hochschulleitung.", "focus": "Recht und Compliance, KI in Prozessen und Services, Beschaffung und Betrieb sowie Change.", "targets": {"E1": "G", "E2": "G", "E3": "F", "E4": "G", "E5": "G", "E6": "F", "E7": "F", "C1": "G", "C2": "G", "C3": "F", "C4": "G", "M1": "F", "M2": "F", "M3": "F", "M4": "F", "S1": "F", "S2": "F", "S3": "G", "S4": "G"}, "comps": [["VW1", "Rechtsrahmen und Compliance im Verwaltungshandeln anwenden", "aus Stratum X (X1)", "Die Fähigkeit, zu bestimmen, welche Pflichten für einen KI-Anwendungsfall in der Verwaltung gelten – KI-Kompetenzpflicht, Verbote, Hochrisiko-Einstufung, menschliche Aufsicht und Betreiberpflichten (Art. 4, 5, 14, 26 AI Act), Datenschutz einschließlich automatisierter Einzelentscheidungen (Art. 22 DSGVO) – und entsprechend zu handeln, einschließlich der Eskalation von Fällen, die eine juristische Prüfung erfordern.", ["Kennt die für die eigene Tätigkeit relevanten Pflichten (AI Act, DSGVO) und die institutionellen Regeln.", "Prüft Anwendungsfälle auf Hochrisiko-Einstufung und Compliance und dokumentiert die Prüfung.", "Verantwortet oder koordiniert institutionelle Compliance-Verfahren, einschließlich Grundrechte-Folgenabschätzungen (Art. 27)."]], ["VW2", "KI in Verwaltungsprozessen und Services gestalten", "aus Stratum X (X2, übertragen)", "Die Fähigkeit, Verwaltungs- und Serviceprozesse – etwa Studierendenservice, Beratung, Personal, Finanzen, Bibliothek – zu analysieren und KI so einzubinden, dass Nachvollziehbarkeit, Gleichbehandlung und Dokumentationspflichten gewahrt bleiben (Übertragung des methodisch sorgfältigen Arbeitens auf das Verwaltungshandeln).", ["Setzt freigegebene KI-Werkzeuge regelkonform für Routineaufgaben ein und dokumentiert den Einsatz.", "Analysiert Prozesse, identifiziert geeignete Einsatzpunkte und pilotiert KI-Unterstützung mit definierten Qualitätskriterien.", "Steuert die KI-gestützte Neugestaltung von Prozessen über Organisationseinheiten hinweg."]], ["VW3", "KI-Systeme beschaffen, einführen und betreiben", "neu", "Die Fähigkeit, Anforderungen an KI-Systeme zu formulieren – Datenschutz, Informationssicherheit, Barrierefreiheit, Datenhoheit, Nachhaltigkeit, Exit-Fähigkeit – und Beschaffung, Einführung, Schulung und laufenden Betrieb verantwortlich zu begleiten.", ["Kennt Freigabe- und Beschaffungswege für KI-Werkzeuge an der eigenen Hochschule.", "Formuliert Anforderungen und bewertet Angebote anhand definierter Kriterien.", "Verantwortet Einführung und Betrieb institutioneller KI-Systeme einschließlich Governance, Monitoring und Exit-Strategie."]], ["VW4", "Sich professionell weiterentwickeln und Veränderung begleiten", "aus Stratum X (X3)", "Die Fähigkeit, die eigene Kompetenzentwicklung zu KI aktiv zu gestalten und Veränderungen von Arbeitsweisen im Team – unter Beteiligung der Personalvertretung – konstruktiv zu begleiten.", ["Erkennt eigene Lernbedarfe zu KI und nutzt Qualifizierungsangebote.", "Teilt Erfahrungen im Team und entwickelt Arbeitshilfen gemeinsam.", "Konzipiert Qualifizierungs- und Change-Formate und begleitet Teams durch KI-bezogene Veränderungen."]]]}], "stratum": [["X1 Den Rechtsrahmen für KI in der Hochschule anwenden", "LF5 Rechtsrahmen in Lehre und Forschung", "ST3 Rechts- und Prüfungsrahmen im Studium", "VW1 Rechtsrahmen und Compliance (Vollumfang)"], ["X2 Wissenschaftliches Arbeiten mit KI praktizieren", "LF3 Wissenschaftlich mit KI forschen und vermitteln", "ST1 Wissenschaftlich arbeiten im Studium", "VW2 KI in Prozessen und Services (übertragen)"], ["X3 Sich mit KI professionell und kollaborativ weiterentwickeln", "LF4 Professionelle Weiterentwicklung", "ST2 Eigenes Lernen mit KI steuern", "VW4 Weiterentwicklung und Change"], ["Neu (aus der Kommentierung)", "LF1 Hochschuldidaktik · LF2 Prüfen und Bewerten", "ST4 KI in Fach und Berufsfeld", "VW3 Beschaffen, einführen, betreiben"]], "changes": [["Architektur", "Zweistufiges Modell: ein für alle Zielgruppen gültiges Fundament (19 Kompetenzen, D1–D4) plus drei Zielgruppenprofile mit Zielniveaus und Profilkompetenzen.", "Kommentare N. Dambier, L. Schubotz, E. Schoenhals"], ["Stratum X aufgelöst", "Keine Sonderkategorie „Professionspflichten“ mehr. X1 (Recht) erscheint in jedem Profil zielgruppengerecht (LF5, ST3, VW1); X2 (Wiss. Arbeiten) in LF3, ST1 und übertragen in VW2; X3 (Weiterentwicklung) in LF4, ST2, VW4.", "Kommentare D. Sedlmeier, E. Schoenhals, J. Felgentreu, L. Schubotz"], ["Zielgruppenneutrales Fundament", "Deskriptoren sprechen nicht mehr nur Lehrende an („Studium, Lehre, Forschung, Verwaltung“; „andere“ statt „Kolleg:innen“).", "Kommentare N. Dambier, L. Schubotz, E. Schoenhals"], ["Niveaus nach AILit", "Grundlegend – Fortgeschritten – Vertieft (Basic – Intermediate – Advanced) statt Grundlagen – Angewandt – Fortgeschritten.", "Kommentare F. Rampelt, N. Dambier"], ["IDs vereinfacht", "Präfix „HET-“ entfällt; D2 heißt C1–C4 (Create) statt „HET-D1–D4“, um Verwechslung mit Domänen zu vermeiden.", "Kommentare L. Schubotz, N. Dambier"], ["KI-Begriff", "Umfassender KI-Begriff (regelbasiert, lernend, generativ); „generativ“ nur dort, wo gemeint (C1, C3). E3 schließt statistische Ausgaben ein.", "Kommentare J. Klusik-Eckert, M. Kircher, N. Dambier"], ["D1-Leitsatz", "„… an einem sich durch KI verändernden akademischen Kontext“ statt „von KI geprägtem Umfeld“; Verstehen explizit Teil von D1.", "Kommentare J. Felgentreu, J. Klusik-Eckert, E. Schoenhals"], ["Einzelformulierungen", "C1 „Generative KI-Systeme …“ (Änderung übernommen); C1-Deskriptoren aktiv formuliert; M3 ohne „nur“; E5 mit Hinweis auf unvollständige Herstellerangaben; D4 inkl. institutioneller Entscheidungsebene.", "Kommentare R. Wessing, J. Felgentreu, M. Stegner, L. Schubotz"], ["Abdeckungsraster", "Das lehrendenzentrierte Raster (O1–O5) entfällt im Fundament; seine Gegenstände leben in den Profilkompetenzen fort (z. B. O4 → LF2).", "Vereinfachung"]], "open": ["Rechtliche Grundlagen als E8 ins Fundament heben? (Vorschlag D. Sedlmeier / L. Norford) – derzeit in allen drei Profilen auf Niveau Grundlegend abgedeckt, das Fundament bleibt bei 19.", "Domänenbenennung am AI Office / AILit ausrichten (Engage – Create – Manage – Design)? Deutsche Namen bleiben vorerst bestehen.", "Zielniveaus je Profil sind ein Vorschlag und im Plenum abzustimmen.", "Weitere Profile (z. B. Hochschulleitung, Bibliothek, IT) als Varianten der drei Grundprofile?", "Gender-Schreibweise festlegen (Doppelpunkt vs. Asterisk)."]};
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const LV = DATA.levels, LVK = ['G','F','V'];
+let state = {view:'ALL', dom:'ALL', q:''};
+try { const s = JSON.parse(localStorage.getItem('hetaicf13') || '{}'); if (s.view) state.view = s.view; } catch(e){}
+const save = () => { try { localStorage.setItem('hetaicf13', JSON.stringify({view:state.view})); } catch(e){} };
+const prof = id => DATA.profiles.find(p => p.id === id);
+const dcol = id => `var(--${id})`;
+
+$('#ver').textContent = DATA.version + ' (' + DATA.date + ')';
+
+function renderArch(){
+  $('#pboxes').innerHTML = DATA.profiles.map(p =>
+    `<button class="pbox ${state.view===p.id?'act':''}" style="background:${dcol(p.id)}" data-v="${p.id}"><b>Profil ${esc(p.name)}</b><span>${esc(p.focus)}</span><span style="margin-top:4px">${p.comps.map(c=>c[0]).join(' · ')}</span></button>`).join('');
+  $('#fbar').classList.toggle('act', state.view==='ALL');
+  $('#doms').innerHTML = DATA.domains.map(d =>
+    `<div class="dom" style="border-top-color:${dcol(d.id)}"><b style="color:${dcol(d.id)}">${d.id} · ${esc(d.name)}</b><div class="ids">${esc(d.en)} · ${DATA.core.filter(c=>c[1]===d.id).map(c=>c[0]).join(', ')}</div><p>${esc(d.short)}</p></div>`).join('');
+  document.querySelectorAll('.pbox').forEach(b => b.onclick = () => setView(b.dataset.v));
+}
+$('#fbar').onclick = () => setView('ALL');
+$('#fbar').onkeydown = e => { if (e.key==='Enter'||e.key===' ') { e.preventDefault(); setView('ALL'); } };
+
+function renderChips(){
+  const views = [['ALL','Fundament (alle)'], ...DATA.profiles.map(p=>[p.id,p.name])];
+  $('#viewchips').innerHTML = views.map(([k,l]) => `<button class="chip ${state.view===k?'act':''}" data-v="${k}">${esc(l)}</button>`).join('');
+  const doms = [['ALL','Alle'], ...DATA.domains.map(d=>[d.id,d.id])];
+  $('#domchips').innerHTML = doms.map(([k,l]) => `<button class="chip ${state.dom===k?'act':''}" data-d="${k}">${l}</button>`).join('');
+  document.querySelectorAll('#viewchips .chip').forEach(b => b.onclick = () => setView(b.dataset.v));
+  document.querySelectorAll('#domchips .chip').forEach(b => b.onclick = () => { state.dom = b.dataset.d; render(); });
+}
+
+const match = (arr) => !state.q || arr.join(' ').toLowerCase().includes(state.q);
+
+function levelsHTML(lv, target){
+  return `<div class="levels">${lv.map((t,i)=>`<div class="lv ${target===LVK[i]?'target':''}"><h4>${LV[i]}</h4>${esc(t)}</div>`).join('')}</div>`;
+}
+
+function card(id, color, title, desc, lv, target, origin){
+  const badge = target ? `<span class="badge ${target!=='–'?'t':''}">${target==='–'?'freiwillig':'Ziel: '+LV[LVK.indexOf(target)]}</span>` : '';
+  return `<details class="card" style="border-left-color:${color}"><summary><span class="cid" style="color:${color}">${id}</span><span class="ctitle">${esc(title)}${origin?`<br><span class="origin">${esc(origin)}</span>`:''}</span>${badge}</summary><div class="cbody"><p class="desc">${esc(desc)}</p>${levelsHTML(lv, target)}</div></details>`;
+}
+
+function renderProfile(){
+  const el = $('#profileSection');
+  if (state.view==='ALL'){ el.innerHTML=''; el.style.display='none'; return; }
+  el.style.display='';
+  const p = prof(state.view);
+  const comps = p.comps.filter(c => match(c));
+  el.innerHTML = `<h2 style="border-color:${dcol(p.id)}">Profil ${esc(p.name)} <span class="dim small">(${esc(p.en)})</span></h2>
+    <div class="pinfo"><p><b>Zielgruppe:</b> ${esc(p.who)}</p><p><b>Schwerpunkt:</b> ${esc(p.focus)}</p>
+    <p><b>Fundament:</b> alle 19 Kernkompetenzen; Zielniveaus sind unten in den Karten markiert.</p></div>
+    <div class="dhead"><h3 style="color:${dcol(p.id)}">Profilkompetenzen</h3><span class="en">ergänzen das Fundament</span></div>
+    ${comps.map(c => card(c[0], dcol(p.id), c[1], c[3], c[4], null, c[2])).join('') || '<p class="dim">Keine Treffer.</p>'}`;
+}
+
+function renderCore(){
+  const p = state.view==='ALL' ? null : prof(state.view);
+  let html = `<h2>Fundament: 19 Kernkompetenzen${p?` <span class="dim small">· Zielniveaus für ${esc(p.name)}</span>`:''}</h2>`;
+  let n = 0;
+  DATA.domains.filter(d => state.dom==='ALL' || d.id===state.dom).forEach(d => {
+    const cs = DATA.core.filter(c => c[1]===d.id && match(c));
+    if (!cs.length) return;
+    n += cs.length;
+    html += `<div class="dhead"><h3 style="color:${dcol(d.id)}">${d.id} · ${esc(d.name)}</h3><span class="en">${esc(d.en)}</span></div><p class="small dim">${esc(d.short)} ${esc(d.intro)}</p>`;
+    html += cs.map(c => card(c[0], dcol(d.id), c[2], c[3], c[4], p ? p.targets[c[0]] : null)).join('');
+  });
+  if (!n) html += '<p class="dim">Keine Treffer.</p>';
+  $('#coreSection').innerHTML = html;
+}
+
+function renderMatrix(){
+  const head = `<tr><th>ID</th><th>Kernkompetenz</th>${DATA.profiles.map(p=>`<th style="color:${dcol(p.id)}">${esc(p.name)}</th>`).join('')}</tr>`;
+  const rows = DATA.core.map(c => `<tr><td><b>${c[0]}</b></td><td>${esc(c[2])}</td>${DATA.profiles.map(p=>{const t=p.targets[c[0]];return `<td class="lvl ${t==='–'?'':t} ${state.view===p.id?'hi':''}">${t}</td>`}).join('')}</tr>`).join('');
+  $('#matrix').innerHTML = head + rows;
+}
+
+function renderStatic(){
+  $('#strat').innerHTML = `<tr><th>Stratum X (v0.11.1)</th>${DATA.profiles.map(p=>`<th style="color:${dcol(p.id)}">${esc(p.name)}</th>`).join('')}</tr>` +
+    DATA.stratum.map(r => `<tr>${r.map((v,i)=>`<td>${i?esc(v):'<b>'+esc(v)+'</b>'}</td>`).join('')}</tr>`).join('');
+  $('#changes').innerHTML = `<tr><th>Thema</th><th>Änderung</th><th>Anlass</th></tr>` +
+    DATA.changes.map(r => `<tr><td><b>${esc(r[0])}</b></td><td>${esc(r[1])}</td><td class="dim">${esc(r[2])}</td></tr>`).join('');
+  $('#open').innerHTML = DATA.open.map(o => `<li>${esc(o)}</li>`).join('');
+}
+
+function setView(v){ state.view = v; save(); render(); }
+function render(){ renderArch(); renderChips(); renderProfile(); renderCore(); renderMatrix(); }
+$('#q').oninput = e => { state.q = e.target.value.trim().toLowerCase(); renderProfile(); renderCore(); };
+$('#theme').onclick = () => {
+  const r = document.documentElement;
+  const dark = r.dataset.theme ? r.dataset.theme==='dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  r.dataset.theme = dark ? 'light' : 'dark';
+};
+renderStatic(); render();
+</script>
+</body>
+</html>
