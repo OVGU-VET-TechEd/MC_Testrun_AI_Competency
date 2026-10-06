@@ -6,6 +6,15 @@ Self-learning micro-credential · 1 ECTS (30 h) · English · LiaScript → SCOR
 > Placeholders that must be filled by the institution are marked `⟨…⟩`.
 
 ---
+## Course Links (Github)
+
+First: https://liascript.github.io/course/? then add raw link from github https://github.com/OVGU-VET-TechEd/MC_Testrun_AI_Competency/tree/main/Courses
+
+Linklist: 
+https://liascript.github.io/course/?https://liascript.github.io/course/?https://raw.githubusercontent.com/OVGU-VET-TechEd/MC_Testrun_AI_Competency/refs/heads/main/Courses/00_Course_Design.md?token=GHSAT0AAAAAAEKCXTXUNQHLVJJVFWKO4IHI2WDMJXQ
+
+etc.
+
 
 ## 1. EU micro-credential descriptor
 

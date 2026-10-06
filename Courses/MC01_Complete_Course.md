@@ -707,6 +707,37 @@ This is how many real failures happen. A well-known research example: a classifi
 
 The training data is **all the model has**. It cannot tell an "important" pattern (the shape of a mug) from an "accidental" one (the background). Any pattern in the data that helps separate the labels can end up in the model, including **social patterns**: if past admission decisions were biased, a model trained on them will reproduce that bias. (This is HETAICF competency E6, a candidate for a later micro-credential.)
 
+## 🔮 POE 3: Watch a trained network compute a class score (CNN Explainer) · optional
+
+> ⏱ 15 min (optional)
+
+Teachable Machine showed *that* an image classifier is fitted to example images. This tool shows *how* the fitted result works: it walks through a trained convolutional network (CNN) layer by layer.
+
+<!-- class="poe" -->
+> 🔮 **Predict – Observe – Explain**
+>
+> Tool: **CNN Explainer**: https://poloclub.github.io/cnn-explainer/
+
+**Predict:** Before opening the tool, write one sentence describing what a trained CNN does to turn the pixels of an image into a class score — without using words like *sees*, *recognises* or *understands*.
+
+[[___ ___]]
+
+**Observe:** Choose one of the example images at the top of the page. The overview shows every layer of the network from the input image (left) to the class scores (right). Click a few units in different layers to see the calculation that produces them.
+<!-- PRÜFEN: steps written from the tool's documentation; the live app could not be loaded during QA. Check the image selection and the click-through once in the browser. -->
+
+**Explain:** In one or two sentences, describe what happens at each layer. Use the module's key words: *pixels, parameters, fitted, class score*.
+
+[[___ ___]]
+
+<details>
+<summary>💡 Model answer</summary>
+
+Each layer applies a calculation to the previous layer's output. In the **convolution layers** this calculation uses filters whose **parameters were fitted to labelled training images**; the other layers apply fixed operations (e.g. setting negative values to zero, or keeping only the largest value in a small window). The network does not "see" the image: it computes a sequence of numerical transformations, and the final layer outputs a **class score** for each class.
+
+Precise: *"The CNN converts the image's pixels, layer by layer, into a class score by applying calculations whose parameters were fitted to labelled training images."*
+
+</details>
+
 ## Precise language for learning systems
 
 > ⏱ 30 min
@@ -958,6 +989,9 @@ That is all "learning" means here: **repeatedly adjusting parameters to reduce t
 
 > 🔁 **Site not working?** MLU-Explain (https://mlu-explain.github.io) → *Neural Networks* and *Train, Test, and Validation Sets* cover the same ideas in scroll-through form.
 
+<!-- class="deepdive" -->
+> 🟦 **Deep dive:** *Feature Visualization* (Distill): https://distill.pub/2017/feature-visualization/ and *Activation Atlas* (Distill): https://distill.pub/2019/activation-atlas/ make visible which input patterns individual units in an image network produce high activations for, once its parameters have been fitted to data. Phrase it precisely: say "this unit's activation is high for images with dog-like textures", not "this neuron knows what a dog is".
+
 ## Data is destiny: four consequences
 
 > ⏱ 35 min
@@ -1164,6 +1198,34 @@ You probably generated something like *"the dog ate the fish . the cat sat on th
 Your model has no idea what a dog is. It only has **counts of which word follows which**. Yet it produces new, fluent sentences. That is the core of language modelling, and also the seed of *hallucination* (Module 5).
 
 Your model looked at **one** previous word. That's called a **bigram model**. Real LLMs look at thousands of previous tokens, and instead of counts they use billions of parameters fitted by gradient descent (Module 3). The basic loop, however, is the same.
+
+</details>
+
+## 🔮 POE: Sampling from a probability distribution (Seeing Theory)
+
+> ⏱ 10 min (optional)
+
+<!-- class="poe" -->
+> 🔮 **Predict – Observe – Explain**
+>
+> Tool: **Seeing Theory** (Brown University): https://seeing-theory.brown.edu/basic-probability/index.html
+>
+> An interactive introduction to probability. Use chapter 1 *Basic Probability*, section **Expectation** (a fair die: each face has probability 1/6).
+
+**Predict:** You roll the die 10 times. Will each face appear in exactly 1/6 of the rolls? What do you expect after 100 more rolls?
+
+[[___ ___]]
+
+**Observe:** Click **Roll the Die** ten times, then **Roll 100 times** a few times, and watch the bars of the observed frequencies.
+
+**Explain:** The probabilities never change, yet every short series of rolls looks different. What does this mean for a language model that samples its next token from a probability distribution?
+
+[[___ ___]]
+
+<details>
+<summary>💡 Model answer</summary>
+
+After 10 rolls the frequencies are uneven; after hundreds of rolls they come close to 1/6. Each single roll is a random draw from a **fixed probability distribution**. A language model does the same for every token: the distribution is fixed by the prompt and the parameters, but each draw can come out differently. That is why the same prompt can produce different answers, and why a less likely token is sometimes chosen.
 
 </details>
 
@@ -1696,6 +1758,9 @@ Hands and lettering are **locally plausible** (finger-like shapes next to finger
 
 <!-- class="deepdive" -->
 > 🟦 **Deep dive:** *The Illustrated Stable Diffusion* (https://jalammar.github.io/illustrated-stable-diffusion/) explains the architecture. *GAN Lab* (https://poloclub.github.io/ganlab/) shows an older family of generative models being trained live.
+
+<!-- class="deepdive" -->
+> 🟦 **Deep dive:** *How to Use t-SNE Effectively* (Distill): https://distill.pub/2016/misread-tsne/ shows with interactive examples how *t-SNE* plots (a common way to draw high-dimensional data, e.g. what a model has learned, in 2D) can mislead: cluster sizes and distances between clusters may mean nothing, and even random noise can appear to form clusters. Not only generated text and images, also **visualisations** of data can look convincing and still misrepresent it: plausible ≠ true.
 
 ## Can it be fixed? And what you do about it
 

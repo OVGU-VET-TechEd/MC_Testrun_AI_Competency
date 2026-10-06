@@ -201,6 +201,37 @@ This is how many real failures happen. A well-known research example: a classifi
 
 The training data is **all the model has**. It cannot tell an "important" pattern (the shape of a mug) from an "accidental" one (the background). Any pattern in the data that helps separate the labels can end up in the model, including **social patterns**: if past admission decisions were biased, a model trained on them will reproduce that bias. (This is HETAICF competency E6, a candidate for a later micro-credential.)
 
+## 🔮 POE 3: Watch a trained network compute a class score (CNN Explainer) · optional
+
+> ⏱ 15 min (optional)
+
+Teachable Machine showed *that* an image classifier is fitted to example images. This tool shows *how* the fitted result works: it walks through a trained convolutional network (CNN) layer by layer.
+
+<!-- class="poe" -->
+> 🔮 **Predict – Observe – Explain**
+>
+> Tool: **CNN Explainer**: https://poloclub.github.io/cnn-explainer/
+
+**Predict:** Before opening the tool, write one sentence describing what a trained CNN does to turn the pixels of an image into a class score — without using words like *sees*, *recognises* or *understands*.
+
+[[___ ___]]
+
+**Observe:** Choose one of the example images at the top of the page. The overview shows every layer of the network from the input image (left) to the class scores (right). Click a few units in different layers to see the calculation that produces them.
+<!-- PRÜFEN: steps written from the tool's documentation; the live app could not be loaded during QA. Check the image selection and the click-through once in the browser. -->
+
+**Explain:** In one or two sentences, describe what happens at each layer. Use the module's key words: *pixels, parameters, fitted, class score*.
+
+[[___ ___]]
+
+<details>
+<summary>💡 Model answer</summary>
+
+Each layer applies a calculation to the previous layer's output. In the **convolution layers** this calculation uses filters whose **parameters were fitted to labelled training images**; the other layers apply fixed operations (e.g. setting negative values to zero, or keeping only the largest value in a small window). The network does not "see" the image: it computes a sequence of numerical transformations, and the final layer outputs a **class score** for each class.
+
+Precise: *"The CNN converts the image's pixels, layer by layer, into a class score by applying calculations whose parameters were fitted to labelled training images."*
+
+</details>
+
 ## Precise language for learning systems
 
 > ⏱ 30 min

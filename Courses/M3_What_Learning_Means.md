@@ -172,6 +172,9 @@ That is all "learning" means here: **repeatedly adjusting parameters to reduce t
 
 > 🔁 **Site not working?** MLU-Explain (https://mlu-explain.github.io) → *Neural Networks* and *Train, Test, and Validation Sets* cover the same ideas in scroll-through form.
 
+<!-- class="deepdive" -->
+> 🟦 **Deep dive:** *Feature Visualization* (Distill): https://distill.pub/2017/feature-visualization/ and *Activation Atlas* (Distill): https://distill.pub/2019/activation-atlas/ make visible which input patterns individual units in an image network produce high activations for, once its parameters have been fitted to data. Phrase it precisely: say "this unit's activation is high for images with dog-like textures", not "this neuron knows what a dog is".
+
 ## Data is destiny: four consequences
 
 > ⏱ 35 min

@@ -97,6 +97,34 @@ Your model looked at **one** previous word. That's called a **bigram model**. Re
 
 </details>
 
+## 🔮 POE: Sampling from a probability distribution (Seeing Theory)
+
+> ⏱ 10 min (optional)
+
+<!-- class="poe" -->
+> 🔮 **Predict – Observe – Explain**
+>
+> Tool: **Seeing Theory** (Brown University): https://seeing-theory.brown.edu/basic-probability/index.html
+>
+> An interactive introduction to probability. Use chapter 1 *Basic Probability*, section **Expectation** (a fair die: each face has probability 1/6).
+
+**Predict:** You roll the die 10 times. Will each face appear in exactly 1/6 of the rolls? What do you expect after 100 more rolls?
+
+[[___ ___]]
+
+**Observe:** Click **Roll the Die** ten times, then **Roll 100 times** a few times, and watch the bars of the observed frequencies.
+
+**Explain:** The probabilities never change, yet every short series of rolls looks different. What does this mean for a language model that samples its next token from a probability distribution?
+
+[[___ ___]]
+
+<details>
+<summary>💡 Model answer</summary>
+
+After 10 rolls the frequencies are uneven; after hundreds of rolls they come close to 1/6. Each single roll is a random draw from a **fixed probability distribution**. A language model does the same for every token: the distribution is fixed by the prompt and the parameters, but each draw can come out differently. That is why the same prompt can produce different answers, and why a less likely token is sometimes chosen.
+
+</details>
+
 ## ⚙️ Run a tiny language model
 
 > ⏱ 60 min

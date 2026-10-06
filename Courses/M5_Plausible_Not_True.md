@@ -234,6 +234,9 @@ Hands and lettering are **locally plausible** (finger-like shapes next to finger
 <!-- class="deepdive" -->
 > 🟦 **Deep dive:** *The Illustrated Stable Diffusion* (https://jalammar.github.io/illustrated-stable-diffusion/) explains the architecture. *GAN Lab* (https://poloclub.github.io/ganlab/) shows an older family of generative models being trained live.
 
+<!-- class="deepdive" -->
+> 🟦 **Deep dive:** *How to Use t-SNE Effectively* (Distill): https://distill.pub/2016/misread-tsne/ shows with interactive examples how *t-SNE* plots (a common way to draw high-dimensional data, e.g. what a model has learned, in 2D) can mislead: cluster sizes and distances between clusters may mean nothing, and even random noise can appear to form clusters. Not only generated text and images, also **visualisations** of data can look convincing and still misrepresent it: plausible ≠ true.
+
 ## Can it be fixed? And what you do about it
 
 > ⏱ 25 min
